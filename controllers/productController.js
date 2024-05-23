@@ -1,4 +1,5 @@
 import productModel from "../models/productModel.js";
+import categoryModel from "../models/categoryModel.js"
 import fs from 'fs'; // file system
 import slugify from "slugify";
 
@@ -258,4 +259,79 @@ export const productListController = async(req,res)=> {
     }
     
 }
+
+
+
+//search product
+export const searchProductController = async(req,res)=> {
+    try {
+        const {keyword} = req.params
+        const results = await productModel.find({
+            $or: [
+                {name: {$regex: keyword, $options: "i"}},                                 // case insensitive     regrex- used for searching/matching patterns with strings
+                {description: {$regex: keyword, $options: "i"}}    
+            ]
+        }).select("-photo")
+        
+        res.json(results)                                                                        // Send the results as a JSON response
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({
+            success: false,
+            error,
+            message: 'Error in Search Product API'
+        })
+    }
+}
+
+
+
+// similar products
+export const relatedProductController = async(req,res)=> {
+    try {
+      const {pid,cid} = req.params
+      const products = await productModel.find({
+        category: cid,
+        _id: {$ne: pid}                                                  // Query to find products with the same category but not the same product id
+      }).select("-photo").limit(3).populate("category")
+      res.status(200).send({
+        success:true,
+        products
+      });
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({
+            success: false,
+            error,
+            message: 'Error in getting Similar Product'
+        })
+    }
+}
+
+
+
+
+//get product by category   
+export const productCategoryController = async(req,res)=> {
+    try {
+      const category = await categoryModel.findOne({slug: req.params.slug})
+      const products = await productModel.find({category}).populate('category')
+      res.status(200).send({
+        success:true,
+        category,
+        products
+      })
+        
+    } catch (error) {
+        console.log(error)
+        res.status(400).send({
+            success: false,
+            error,
+            message: 'Error in getting Product'
+        })
+    }
+}
+
 
