@@ -147,3 +147,10 @@
 .register button:hover {
   background-color: gray;
 }
+
+
+/******************  */
+.product-link {
+  text-decoration: none !important;
+  color: black !important;
+}
